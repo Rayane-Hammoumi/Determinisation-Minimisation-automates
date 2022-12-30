@@ -223,7 +223,6 @@ void execute_AFN(int argc, char *argv[])
                 else // on a réussi à lire le mot mais on ne tombe pas dans un état accepteur
                 {
                     printf(" ko\n");
-                    printf("\n");
                     nb_espaces = 10 * nb_transitions_prises;
                     for (k = 0; k < nb_espaces - 2; k++)
                     {
