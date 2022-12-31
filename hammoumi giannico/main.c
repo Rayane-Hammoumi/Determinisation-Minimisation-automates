@@ -1,35 +1,5 @@
 #include "headers.h"
 
-//
-
-void affiche_AFN()
-{
-    char caractere_lu;
-
-    FILE *fichier = fopen("AFN.txt", "r");
-
-    if (fichier != NULL)
-    {
-        caractere_lu = fgetc(fichier);
-
-        while (caractere_lu != EOF)
-        {
-            printf("%c", caractere_lu);
-            caractere_lu = fgetc(fichier);
-        }
-    }
-    else
-    {
-        printf("erreur fichier");
-    }
-
-    printf("\n\nFin d'affichage de l'AFN\n\n");
-
-    fclose(fichier);
-}
-
-//
-
 void execute_AFN(int argc, char *argv[])
 {
     if (argc == 1)
@@ -329,9 +299,39 @@ void execute_AFN(int argc, char *argv[])
     fclose(fichier);
 }
 
+//
+
+void affiche_AFN(char *argv[])
+{
+    char caractere_lu;
+
+    FILE *fichier = fopen(argv[1], "r");
+
+    if (fichier != NULL)
+    {
+        caractere_lu = fgetc(fichier);
+
+        while (caractere_lu != EOF)
+        {
+            printf("%c", caractere_lu);
+            caractere_lu = fgetc(fichier);
+        }
+    }
+    else
+    {
+        printf("erreur fichier");
+    }
+
+    printf("\n\nFin d'affichage de l'AFN\n\n");
+
+    fclose(fichier);
+}
+
+//
+
 int main(int argc, char *argv[])
 {
-    affiche_AFN();
+    // affiche_AFN(argv);
     execute_AFN(argc, argv);
 
     return 0;
