@@ -91,7 +91,6 @@ void execute_AFN(int argc, char *argv[])
     j = 0;
     char etat_actuel = '0';
     int mot_accepte = 0;
-    int mot_refuse = 0;
     int mot_execute = 1; // incrémente quand on a finit d'exécuter un mot sur l'automate
 
     // à chaque transition, on note:
@@ -99,15 +98,20 @@ void execute_AFN(int argc, char *argv[])
     char historique_etats[100];     // l'état emprunté
 
     int nb_transitions_prises = 0;
-    int positions_interdites[20] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // contient les positions dans le fichier qui mènent à des
-                                                                                                 // transitions qu'on a déjà testé et qui ne fonctionnent pas
+    int positions_interdites[100]; // contient les positions dans le fichier qui mènent à des
+
+    for (k = 0; k < 100; k++)
+    {
+        positions_interdites[k] = 0;
+        historique_etats[k] = 's';
+        historique_positions[k] = 0;
+    }
+    // transitions qu'on a déjà testé et qui ne fonctionnent pas
     int compteur_positions_interdites = 0;
     int compteur = 0;
     int est_interdite = 0;
     int nb_espaces;
     int sauter_ligne;
-
-    printf("\n(0, %s) |-", argv[mot_execute]);
 
     fseek(fichier, position_transitions + 2, SEEK_SET); // on replace le curseur au début des transitions au 1er caractère
     caractere_lu = fgetc(fichier);
@@ -115,6 +119,8 @@ void execute_AFN(int argc, char *argv[])
     // pour chaque mot en entrée sauf le nom de ce programme
     for (mot_execute = 1; mot_execute < argc; mot_execute++)
     {
+        printf("\n(0, %s) |-", argv[mot_execute]);
+
         // on break si on a accepté le mot ou si on est à l'état 0 et qu'on a finit de lire le fichier
         while (1)
         {
@@ -123,7 +129,6 @@ void execute_AFN(int argc, char *argv[])
             {
                 fseek(fichier, -3, SEEK_CUR);
                 caractere_lu = fgetc(fichier);
-
                 fseek(fichier, 2, SEEK_CUR); // on revient à la position juste après le caractère
 
                 if (caractere_lu == etat_actuel)
@@ -144,7 +149,6 @@ void execute_AFN(int argc, char *argv[])
                 // si pour y accéder, la transistion part bien de l'etat actuel et que la position n'est pas interdite
                 if ((caractere_lu == etat_actuel) && (est_interdite == 0))
                 {
-
                     historique_positions[nb_transitions_prises] = ftell(fichier);
                     fseek(fichier, 1, SEEK_CUR); // on revient à la position juste avant l'état de destination
                     caractere_lu = fgetc(fichier);
@@ -170,7 +174,7 @@ void execute_AFN(int argc, char *argv[])
 
                 else
                 {
-                    fseek(fichier, 3, SEEK_CUR); // on deplace le curseur de 3
+                    fseek(fichier, 5, SEEK_CUR); // on deplace le curseur de 5
                     est_interdite = 0;
                 }
             }
@@ -180,28 +184,74 @@ void execute_AFN(int argc, char *argv[])
             {
                 if (nb_transitions_prises == 0) // si on est toujours à l'état initial, le mot ne peut pas être accepté
                 {
-                    etat_actuel = 0;
+
+                    etat_actuel = '0';
+                    est_interdite = 0;
                     printf(" ko\n");
                     fseek(fichier, position_transitions + 2, SEEK_SET); // on replace le curseur au début des transitions au 1er caractère
+                    i = 0;
+                    nb_transitions_prises = 0;
+                    compteur_positions_interdites = 0;
+                    for (k = 0; k < 100; k++)
+                    {
+                        positions_interdites[k] = 0;
+                        historique_etats[k] = 's';
+                        historique_positions[k] = 0;
+                    }
+
+                    fseek(fichier, position_transitions + 2, SEEK_SET); // on replace le curseur au début des transitions au 1er caractère
+                    caractere_lu = fgetc(fichier);                      // on lit le caractère suivant
                     break;                                              // on passe au mot suivant
                 }
                 else // sinon on revient à la transition précédente
                 {
+                    printf(" ko\n");
+                    if (nb_transitions_prises == 1)
+                    {
+                        nb_espaces = 6 + strlen(argv[mot_execute]);
+                    }
+                    else
+                    {
+                        nb_espaces = 6 + 9 * (nb_transitions_prises - 1);
+
+                        for (k = 0; k < nb_transitions_prises; k++)
+                        {
+                            nb_espaces = nb_espaces + strlen(argv[mot_execute]) - k;
+                        }
+                    }
+
+                    for (k = 0; k < nb_espaces; k++)
+                    {
+                        printf(" ");
+                    }
+                    printf("|-");
+
                     // la position actuelle devient interdite
                     positions_interdites[compteur_positions_interdites] = historique_positions[nb_transitions_prises - 1];
                     compteur_positions_interdites++;
                     nb_transitions_prises--;
-                    etat_actuel = historique_etats[nb_transitions_prises];
+                    if (nb_transitions_prises == 0)
+                    {
+                        etat_actuel = '0';
+                    }
+                    else
+                    {
+                        etat_actuel = historique_etats[nb_transitions_prises - 1];
+                    }
+
                     i--;
-                    printf(" ko\n");
                     fseek(fichier, position_transitions + 2, SEEK_SET); // on replace le curseur au début des transitions au 1er caractère
                 }
+            }
+            else
+            {
+                fseek(fichier, 5, SEEK_CUR); // on deplace le curseur de 5
             }
 
             if (i >= strlen(argv[mot_execute])) // si on a lu tout le mot
             {
                 // on verifie si etat_actuel est contenu dans etats_accepteurs, si oui ok sinon ko
-                while (etats_accepteurs[j] != 's' && mot_refuse == 0)
+                while (etats_accepteurs[j] != 's')
                 {
                     if (etat_actuel == etats_accepteurs[j])
                     {
@@ -218,13 +268,39 @@ void execute_AFN(int argc, char *argv[])
                 if (mot_accepte == 1)
                 {
                     mot_accepte = 0;
+                    est_interdite = 0;
+                    etat_actuel = '0';
+                    i = 0;
+                    nb_transitions_prises = 0;
+                    compteur_positions_interdites = 0;
+                    for (k = 0; k < 100; k++)
+                    {
+                        positions_interdites[k] = 0;
+                        historique_etats[k] = 's';
+                        historique_positions[k] = 0;
+                    }
+
+                    fseek(fichier, position_transitions + 2, SEEK_SET); // on replace le curseur au début des transitions au 1er caractère
+                    caractere_lu = fgetc(fichier);                      // on lit le caractère suivant
                     break;
                 }
                 else // on a réussi à lire le mot mais on ne tombe pas dans un état accepteur
                 {
                     printf(" ko\n");
-                    nb_espaces = 10 * nb_transitions_prises;
-                    for (k = 0; k < nb_espaces - 2; k++)
+                    if (nb_transitions_prises == 1)
+                    {
+                        nb_espaces = 6 + strlen(argv[mot_execute]);
+                    }
+                    else
+                    {
+                        nb_espaces = 6 + 9 * (nb_transitions_prises - 1);
+
+                        for (k = 0; k < nb_transitions_prises; k++)
+                        {
+                            nb_espaces = nb_espaces + strlen(argv[mot_execute]) - k;
+                        }
+                    }
+                    for (k = 0; k < nb_espaces; k++)
                     {
                         printf(" ");
                     }
@@ -233,7 +309,14 @@ void execute_AFN(int argc, char *argv[])
                     positions_interdites[compteur_positions_interdites] = historique_positions[nb_transitions_prises - 1];
                     compteur_positions_interdites++;
                     nb_transitions_prises--;
-                    etat_actuel = historique_etats[nb_transitions_prises - 1];
+                    if (nb_transitions_prises == 0)
+                    {
+                        etat_actuel = '0';
+                    }
+                    else
+                    {
+                        etat_actuel = historique_etats[nb_transitions_prises - 1];
+                    }
                     i--;
                     fseek(fichier, position_transitions + 2, SEEK_SET); // on replace le curseur au début des transitions au 1er caractère
                 }
