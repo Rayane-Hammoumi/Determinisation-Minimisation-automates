@@ -38,7 +38,7 @@ void execute_AFN(int argc, char *argv[])
         exit(1);
     }
 
-    FILE *fichier = fopen("AFN.txt", "r");
+    FILE *fichier = fopen(argv[1], "r");
 
     if (fichier == NULL)
     {
@@ -91,7 +91,7 @@ void execute_AFN(int argc, char *argv[])
     j = 0;
     char etat_actuel = '0';
     int mot_accepte = 0;
-    int mot_execute = 1; // incrémente quand on a finit d'exécuter un mot sur l'automate
+    int mot_execute = 2; // incrémente quand on a finit d'exécuter un mot sur l'automate
 
     // à chaque transition, on note:
     long historique_positions[100]; // sa position dans le fichier grâce à ftell
@@ -117,7 +117,7 @@ void execute_AFN(int argc, char *argv[])
     caractere_lu = fgetc(fichier);
 
     // pour chaque mot en entrée sauf le nom de ce programme
-    for (mot_execute = 1; mot_execute < argc; mot_execute++)
+    for (mot_execute = 2; mot_execute < argc; mot_execute++)
     {
         printf("\n(0, %s) |-", argv[mot_execute]);
 
