@@ -123,9 +123,11 @@ void execute_mots_sur_automate(int argc, char *argv[])
 
     int compteur_positions_interdites = 0; // compte le nombre de transitions qu'on a déjà testé et qui ne fonctionnent pas
     int est_interdite = 0;                 // booleen qui passe à 1 si la position actuelle de la tête de lecture est contenue dans positions_interdites[]
-    int nb_espaces;                        // pour l'affichage dans le terminal
+    int nb_espaces = 0;                    // pour l'affichage dans le terminal
+    int somme_nb_chiffres_etats_empruntes = 0;
     char test_fgetc = 's';
-
+    char copie_etat_actuel[nb_chiffres_max_par_etat + 1]; // sert pour le calcul du nombre d'espace dans l'affichage du terminal
+    int nb_chiffres_etat_actuel = 0;
     // on replace le curseur au début des transitions au 1er caractère
     fseek(fichier, position_transitions + 1, SEEK_SET);
     while ((test_fgetc = fgetc(fichier) != ' '))
@@ -211,6 +213,10 @@ void execute_mots_sur_automate(int argc, char *argv[])
                     copie_elements(etat_actuel, caractere_lu, nb_chiffres_max_par_etat); // l'état actuel devient la destination de la transition
                     copie_elements(historique_etats[nb_transitions_prises], etat_actuel, nb_chiffres_max_par_etat);
 
+                    // on augmente le nombre d'espaces à afficher dans le terminal
+                    nb_chiffres_etat_actuel = snprintf(copie_etat_actuel, nb_chiffres_max_par_etat + 1, "%d", atoi(etat_actuel));
+                    somme_nb_chiffres_etats_empruntes += nb_chiffres_etat_actuel;
+
                     // on replace le curseur au début des transitions au 1er caractère
                     fseek(fichier, position_transitions + 1, SEEK_SET);
                     while ((test_fgetc = fgetc(fichier) != ' '))
@@ -223,7 +229,6 @@ void execute_mots_sur_automate(int argc, char *argv[])
 
                     for (k = 0; k < nb_chiffres_max_par_etat; k++)
                     {
-
                         if (caractere_lu[k] != 's')
                         {
                             printf("%c", caractere_lu[k]);
@@ -314,20 +319,19 @@ void execute_mots_sur_automate(int argc, char *argv[])
 
                 else // sinon on revient à la transition précédente
                 {
-
                     printf(" ko\n");
-                    if (nb_transitions_prises == 1)
-                    {
 
-                        nb_espaces = 6 + strlen(argv[mot_execute]);
-                    }
-                    else
+                    // calcul du nombre d'espaces pour l'affichage dans le terminal
+                    nb_chiffres_etat_actuel = snprintf(copie_etat_actuel, nb_chiffres_max_par_etat + 1, "%d", atoi(historique_etats[nb_transitions_prises - 1]));
+                    somme_nb_chiffres_etats_empruntes -= nb_chiffres_etat_actuel;
+                    nb_espaces = 6 + strlen(argv[mot_execute]);
+                    if (nb_transitions_prises != 1)
                     {
-                        nb_espaces = 6 + 9 * (nb_transitions_prises - 1);
+                        nb_espaces += (somme_nb_chiffres_etats_empruntes + 8 * (nb_transitions_prises - 1));
 
-                        for (k = 0; k < nb_transitions_prises; k++)
+                        for (k = 1; k < nb_transitions_prises; k++)
                         {
-                            nb_espaces = nb_espaces + strlen(argv[mot_execute]) - k;
+                            nb_espaces += (strlen(argv[mot_execute]) - k);
                         }
                     }
 
@@ -439,25 +443,21 @@ void execute_mots_sur_automate(int argc, char *argv[])
                 {
                     printf(" ko\n");
 
-                    // calcul du nombre d'espace pour l'affichage dans le terminal
-                    if (nb_transitions_prises == 1)
+                    // calcul du nombre d'espaces pour l'affichage dans le terminal
+                    somme_nb_chiffres_etats_empruntes -= nb_chiffres_etat_actuel;
+                    nb_espaces = 6 + strlen(argv[mot_execute]);
+                    if (nb_transitions_prises != 1)
                     {
-                        nb_espaces = 6 + strlen(argv[mot_execute]);
-                    }
-                    else
-                    {
-                        nb_espaces = 6 + 9 * (nb_transitions_prises - 1);
+                        nb_espaces += (somme_nb_chiffres_etats_empruntes + 8 * (nb_transitions_prises - 1));
 
-                        for (k = 0; k < nb_transitions_prises; k++)
+                        for (k = 1; k < nb_transitions_prises; k++)
                         {
-
-                            nb_espaces = nb_espaces + strlen(argv[mot_execute]) - k;
+                            nb_espaces += (strlen(argv[mot_execute]) - k);
                         }
                     }
 
                     for (k = 0; k < nb_espaces; k++)
                     {
-
                         printf(" ");
                     }
                     printf("|-");
@@ -505,10 +505,10 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-// renvoie 0 si les tableaux contiennent les mêmes éléments
-int compare_tableaux(char a[], char b[], int taille_tableaux)
+// renvoie 0 si les tableaux contiennent les mêmes éléments d'indice inférieur à indice_max
+int compare_tableaux(char a[], char b[], int indice_max)
 {
-    for (int i = 0; i < taille_tableaux; i++)
+    for (int i = 0; i < indice_max; i++)
     {
         if (a[i] != b[i])
             return 1;
@@ -516,11 +516,25 @@ int compare_tableaux(char a[], char b[], int taille_tableaux)
     return 0;
 }
 
-// copie les éléments du tableau b dans le tableau a
-void copie_elements(char a[], char b[], int taille_tableaux)
+// copie les éléments d'indice inférieur à indice_max du tableau b dans le tableau a
+void copie_elements(char a[], char b[], int indice_max)
 {
-    for (int i = 0; i < taille_tableaux; i++)
+    for (int i = 0; i < indice_max; i++)
     {
         a[i] = b[i];
+    }
+}
+
+//----------------------------------------------------------------------------------
+
+void determinise_automate(char *argv[])
+{
+    FILE *fichier = fopen(argv[1], "r");
+
+    if (fichier == NULL)
+    {
+        printf("erreur à l'ouverture du fichier");
+        fclose(fichier);
+        exit(1);
     }
 }
