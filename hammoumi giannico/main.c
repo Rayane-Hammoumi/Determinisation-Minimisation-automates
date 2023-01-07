@@ -3,6 +3,7 @@
 // execute les mots de la commande sur le terminal specifié dans la commande
 void execute_AFN(int argc, char *argv[])
 {
+
     if (argc == 1)
     {
         printf("Veuillez préciser au moins un mot à exécuter\n\n");
@@ -48,7 +49,6 @@ void execute_AFN(int argc, char *argv[])
 
     int position_transitions = nb_chiffres_max_par_etat + 1; /* indique à quelle position dans le fichier commence
                                                             la première transition (calculée plus bas)*/
-
     compteur_indice_caractere_lu = 0;
     char caractere_lu[nb_chiffres_max_par_etat]; // string qui va stocker les valeurs de renvoi de fgetc()
     strcpy(caractere_lu, string_s);
@@ -88,37 +88,40 @@ void execute_AFN(int argc, char *argv[])
     int mot_accepte = 0; // booleen
     int mot_execute = 2; // incrémente quand on a finit d'exécuter un mot sur l'automate
 
-    // à chaque transition, on note:
-    long historique_positions[nb_etats_AFN * nb_etats_AFN];        // -> sa position dans le fichier grâce à ftell
-    char historique_etats[nb_etats_AFN][nb_chiffres_max_par_etat]; // -> l'état emprunté
+    int nb_caracteres_a_chercher;
 
-    int nb_transitions_prises = 0;                         // incrémente à chaque transition prise et décrémente quand on revient à un état précédent
-    int positions_interdites[nb_etats_AFN * nb_etats_AFN]; // contient les positions dans le fichier qui mènent à des ko
+    for (k = 2; k < argc - 1; k++)
+    {
+        nb_caracteres_a_chercher += strlen(argv[k]);
+    }
+
+    // à chaque transition, on note:
+    long historique_positions[nb_caracteres_a_chercher];                       // -> sa position dans le fichier grâce à ftell
+    char historique_etats[nb_caracteres_a_chercher][nb_chiffres_max_par_etat]; // -> l'état emprunté
+
+    int nb_transitions_prises = 0;                                                    // incrémente à chaque transition prise et décrémente quand on revient à un état précédent
+    int positions_interdites[nb_caracteres_a_chercher + nb_etats_AFN * nb_etats_AFN]; // contient les positions dans le fichier qui mènent à des ko
 
     // on initialise historique_etats à des strings remplis de 's'
     // on initialise positions_interdites et historique_positions à des tableaux remplis de 0
-    for (k = 0; k < nb_etats_AFN; k++)
+    for (k = 0; k < nb_caracteres_a_chercher; k++)
     {
         strcpy(historique_etats[k], string_s);
-        positions_interdites[k] = 0;
         historique_positions[k] = 0;
     }
 
-    for (k = nb_etats_AFN; k < nb_etats_AFN * nb_etats_AFN; k++)
+    for (k = nb_caracteres_a_chercher; k < nb_caracteres_a_chercher + nb_etats_AFN * nb_etats_AFN; k++)
     {
         positions_interdites[k] = 0;
-        historique_positions[k] = 0;
     }
 
     int compteur_positions_interdites = 0; // compte le nombre de transitions qu'on a déjà testé et qui ne fonctionnent pas
     int est_interdite = 0;                 // booleen qui passe à 1 si la position actuelle de la tete de lecture est contenue dans positions_interdites[]
     int nb_espaces;                        // pour l'affichage dans le terminal
     char test_fgetc = 's';
-
     fseek(fichier, position_transitions + 2, SEEK_SET); // on replace le curseur au début des transitions au 1er caractère
     strcpy(caractere_lu, string_s);                     // on réinitialise caractere_lu
     caractere_lu[0] = fgetc(fichier);
-
     // pour chaque mot en entrée sauf le nom de ce programme
     for (mot_execute = 2; mot_execute < argc; mot_execute++)
     {
@@ -241,17 +244,15 @@ void execute_AFN(int argc, char *argv[])
                     nb_transitions_prises = 0;
                     compteur_positions_interdites = 0;
 
-                    for (k = 0; k < nb_etats_AFN; k++)
+                    for (k = 0; k < nb_caracteres_a_chercher; k++)
                     {
                         strcpy(historique_etats[k], string_s);
-                        positions_interdites[k] = 0;
                         historique_positions[k] = 0;
                     }
 
-                    for (k = nb_etats_AFN; k < nb_etats_AFN * nb_etats_AFN; k++)
+                    for (k = nb_caracteres_a_chercher; k < nb_caracteres_a_chercher + nb_etats_AFN * nb_etats_AFN; k++)
                     {
                         positions_interdites[k] = 0;
-                        historique_positions[k] = 0;
                     }
 
                     fseek(fichier, position_transitions + 2, SEEK_SET); // on replace le curseur au début des transitions au 1er caractère
@@ -330,17 +331,15 @@ void execute_AFN(int argc, char *argv[])
                     nb_transitions_prises = 0;
                     compteur_positions_interdites = 0;
 
-                    for (k = 0; k < nb_etats_AFN; k++)
+                    for (k = 0; k < nb_caracteres_a_chercher; k++)
                     {
                         strcpy(historique_etats[k], string_s);
-                        positions_interdites[k] = 0;
                         historique_positions[k] = 0;
                     }
 
-                    for (k = nb_etats_AFN; k < nb_etats_AFN * nb_etats_AFN; k++)
+                    for (k = nb_caracteres_a_chercher; k < nb_caracteres_a_chercher + nb_etats_AFN * nb_etats_AFN; k++)
                     {
                         positions_interdites[k] = 0;
-                        historique_positions[k] = 0;
                     }
 
                     fseek(fichier, position_transitions + 2, SEEK_SET); // on replace le curseur au début des transitions au 1er caractère
