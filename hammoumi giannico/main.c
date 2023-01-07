@@ -500,20 +500,6 @@ void execute_mots_sur_automate(int argc, char *argv[])
 //----------------------------------------------------------------------------------
 // MINIMISATION
 
-typedef struct Transition
-{
-    int etatDepart;
-    char lettre;
-    int etatArrivee;
-} Transition;
-
-typedef struct Automate
-{
-    int nbEtat;
-    int *etatsAccepteur;
-    Transition *listeTransition;
-} Automate;
-
 Automate cree_automate(char nomFichier[])
 {
     Automate aut;
@@ -852,17 +838,14 @@ void minimise_automate(Automate aut)
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2)
-        return 0;
-    else
-    {
-        execute_mots_sur_automate(argc, argv);
-        Automate aut = cree_automate(argv[1]);
-        affiche_automate(aut);
-        // minimise_automate(aut);
-        free(aut.etatsAccepteur);
-        free(aut.listeTransition);
-    }
+
+    /* execute_mots_sur_automate(argc, argv);
+     Automate aut = cree_automate(argv[1]);
+     affiche_automate(aut);
+     // minimise_automate(aut);
+     free(aut.etatsAccepteur);
+     free(aut.listeTransition);*/
+    determinise_automate(cree_automate(argv[1]));
     return 0;
 }
 
@@ -888,14 +871,49 @@ void copie_elements(char a[], char b[], int indice_max)
 
 //----------------------------------------------------------------------------------
 
-void determinise_automate(char *argv[])
+void determinise_automate(Automate aut)
 {
-    FILE *fichier = fopen(argv[1], "r");
+    ecrit_automate_dans_fichier(aut, "../AFD");
+}
 
-    if (fichier == NULL)
+void ecrit_automate_dans_fichier(Automate aut, char chemin_fichier[])
+{
+    FILE *AFD = fopen(chemin_fichier, "w+");
+
+    if (AFD == NULL)
     {
         printf("erreur à l'ouverture du fichier");
-        fclose(fichier);
+        fclose(AFD);
         exit(1);
+    }
+
+    fprintf(AFD, "%d\n", aut.nbEtat); // on écrit le nombre d'états dans le fichier AFD
+
+    int i;
+    // on écrit les états accepteurs dans le fichier AFD
+    for (i = 0; i < aut.nbEtat; i++)
+    {
+        if (aut.etatsAccepteur[i] != -1)
+        {
+            fprintf(AFD, "%d ", aut.etatsAccepteur[i]);
+        }
+    }
+    fseek(AFD, -1, SEEK_CUR);
+    fprintf(AFD, "\n");
+
+    // on écrit les transitions
+    for (i = 0; i < aut.nbEtat * aut.nbEtat; i++)
+    {
+        if (aut.listeTransition[i].lettre != '\0')
+        {
+            fprintf(AFD, "%d ", aut.listeTransition[i].etatDepart);
+            fprintf(AFD, "%c ", aut.listeTransition[i].lettre);
+            fprintf(AFD, "%d", aut.listeTransition[i].etatArrivee);
+        }
+
+        if (aut.listeTransition[i + 1].lettre != '\0')
+        {
+            fprintf(AFD, "\n");
+        }
     }
 }
