@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 
-void execute_AFN(int argc, char *argv[]);
+void execute_mots_sur_automate(int argc, char *argv[]);
 void determinise_automate(char *argv[]);
 int compare_tableaux(char a[], char b[], int taille_tableaux);
 void copie_elements(char a[], char b[], int taille_tableaux);

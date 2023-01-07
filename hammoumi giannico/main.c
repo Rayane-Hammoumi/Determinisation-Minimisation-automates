@@ -1,7 +1,7 @@
 #include "headers.h"
 
 // execute les mots de la commande sur le terminal specifié dans la commande
-void execute_AFN(int argc, char *argv[])
+void execute_mots_sur_automate(int argc, char *argv[])
 {
     if (argc == 1)
     {
@@ -501,8 +501,7 @@ void execute_AFN(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-    execute_AFN(argc, argv);
-
+    execute_mots_sur_automate(argc, argv);
     return 0;
 }
 
