@@ -500,6 +500,9 @@ void execute_mots_sur_automate(int argc, char *argv[])
 //----------------------------------------------------------------------------------
 // MINIMISATION
 
+// fonction qui cree un automate a partir d'un fichier
+// elle prend en parametre le nom du fichier
+// elle retourne l'automate
 Automate cree_automate(char nomFichier[])
 {
     Automate aut;
@@ -521,19 +524,26 @@ Automate cree_automate(char nomFichier[])
         while (fgets(txt, 1000, fichier) != NULL)
         {
             // printf("%s", txt);
-            if (i == 0)
+            if (i == 0) // 1ere ligne du fichier correspond au nombre d'etat
             {
                 aut.nbEtat = atoi(txt);
                 aut.etatsAccepteur = malloc(aut.nbEtat * sizeof(int));
                 aut.listeTransition = malloc((aut.nbEtat * aut.nbEtat) * sizeof(Transition));
+
+                for (int i = 0; i <= aut.nbEtat * aut.nbEtat; i++) // met le du tab a -1
+                {
+                    aut.listeTransition[i].etatDepart = -1;
+                    aut.listeTransition[i].lettre = '\0';
+                    aut.listeTransition[i].etatArrivee = -1;
+                }
             }
-            if (i == 1)
+            if (i == 1) // 2eme ligne du fichier correspond aux etats accepteur
             {
                 char *token = strtok(txt, " ");
-                // loop through the string to extract all other tokens
+                // on va extraire les differents jetons et les mettre dans le tableau des etatsAccepteur
                 while (token != NULL)
                 {
-                    // printf("%d %s\n", k, token); // printing each token
+                    // printf("%d %s\n", k, token);
                     aut.etatsAccepteur[k] = atoi(token);
                     token = strtok(NULL, " ");
                     k++;
@@ -541,22 +551,23 @@ Automate cree_automate(char nomFichier[])
                 for (int i = k; i <= aut.nbEtat; i++) // met le reste du tab a -1
                     aut.etatsAccepteur[i] = -1;
             }
-            if (i >= 2)
+            if (i >= 2) // a partir de la 3eme ligne il y a que les transitions
             {
                 j = 0;
                 k = 0;
                 char *token = strtok(txt, " ");
-                // loop through the string to extract all other tokens
+                // on va extraire les differents jetons et les mettres dans le tableau/variable correspondant
+                //  jeton ds etatDepart ou lettre ou arrivee
                 while (token != NULL)
                 {
-                    // printf(" %s\n", token); // printing each token
-                    if (j == 0)
+                    // printf(" %s\n", token);
+                    if (j == 0) // ds etatDepart
                     {
                         aut.listeTransition[i - 2].etatDepart = atoi(token);
                     }
-                    if (j == 1)
+                    if (j == 1) // ds lettre
                         aut.listeTransition[i - 2].lettre = token[0];
-                    if (j == 2)
+                    if (j == 2) // ds etatArrivee
                         aut.listeTransition[i - 2].etatArrivee = atoi(token);
 
                     token = strtok(NULL, " ");
@@ -571,6 +582,8 @@ Automate cree_automate(char nomFichier[])
     return aut;
 }
 
+// fonction qui affiche l'automate
+// elle prend en parametre l'automate
 void affiche_automate(Automate aut)
 {
     int i = 0;
@@ -586,13 +599,16 @@ void affiche_automate(Automate aut)
     }
     i = 0;
     printf("liste des transitions : \n");
-    while (aut.listeTransition[i].lettre != '\0')
+    while (aut.listeTransition[i].etatDepart != -1)
     {
         printf("%d %c %d\n", aut.listeTransition[i].etatDepart, aut.listeTransition[i].lettre, aut.listeTransition[i].etatArrivee);
         i++;
     }
+    printf("\n");
 }
 
+// fonction qui determine si un etat de l'automate donnee est accepteur, renvoie 1 si oui 0 sinon
+// elle prend en parametre, l'etat, et l'automate
 int est_accepteur(int etat, Automate aut)
 {
     for (int i = 0; i < aut.nbEtat; i++)
@@ -603,6 +619,8 @@ int est_accepteur(int etat, Automate aut)
     return 0;
 }
 
+// fonction qui renvoie 1 si l'element e est dans le tableau, 0 sinon
+// elle prend en parametre le caratere e, le tableau, et sa taille
 int est_ds_tableau(char e, char tab[], int tailleTab)
 {
     for (int i = 0; i < tailleTab; i++)
@@ -613,6 +631,9 @@ int est_ds_tableau(char e, char tab[], int tailleTab)
     return 0;
 }
 
+// fonction qui permet de récuperer tout les caractere de l'automate pour former l'alphabet
+// cette fonction renvoie le nombre de caractere de l'alphabet.
+// elle prend en parametre, l'automate, et le tableau de l'alphabet
 int get_alphabet(Automate aut, char alphabet[])
 {
     int i = 0, j = 0;
@@ -634,11 +655,13 @@ int get_alphabet(Automate aut, char alphabet[])
     return j;
 }
 
+// fonction qui initialise la minimisation en affectant des noms aux groupes
+// elle prend en parametre, l'automate, et le tableau des groupes
 void init_minimisation(Automate aut, int groupe[])
 {
     // init // 0: etat 0, 1: etat 1...
     int nomGroupe = 0; // 0 = accepteur 1 sinon
-    printf("INIT\n");
+    // printf("INIT\n");
     for (int i = 0; i < aut.nbEtat; i++)
     {
         if (est_accepteur(i, aut))
@@ -646,12 +669,14 @@ void init_minimisation(Automate aut, int groupe[])
         else
             groupe[i] = 1;
 
-        printf("[%d] = groupe %d\n", i, groupe[i]);
+        // printf("[%d] = groupe %d\n", i, groupe[i]);
     }
-
+    // printf("\n");
     ///////
 }
 
+// fonction qui initialise un tableau de type int
+// elle prend en parametre, le tableau, et sa taille
 void initialise_tab_int(int tab[], int taille, int valeur)
 {
     for (int i = 0; i < taille; i++)
@@ -660,6 +685,8 @@ void initialise_tab_int(int tab[], int taille, int valeur)
     }
 }
 
+// fonction qui initialise un tableau de type char
+// elle prend en parametre, le tableau, et sa taille
 void initialise_tab_char(char tab[], int taille)
 {
     for (int i = 0; i < taille; i++)
@@ -668,6 +695,8 @@ void initialise_tab_char(char tab[], int taille)
     }
 }
 
+// fonction qui renvoie 1 si les tableaux sont egaux 0 sinon
+// elle prend en parametre, les 2 tableaux, et la taille de ces 2 tableaux
 int tab_sont_egaux(int tab1[], int tab2[], int tailleTab)
 {
     for (int i = 0; i < tailleTab; i++)
@@ -678,6 +707,8 @@ int tab_sont_egaux(int tab1[], int tab2[], int tailleTab)
     return 1;
 }
 
+// fonction qui renvoie le maximum d'un tableau
+// elle prend en parametre, le tableau, et sa taille
 int max(int tab[], int tailleTab)
 {
     int max = tab[0];
@@ -689,7 +720,7 @@ int max(int tab[], int tailleTab)
     return max;
 }
 
-// copier tab1 ds tab2
+// fonction qui copie tab1 ds tab2
 void copy_tab(int tab1[], int tab2[], int tailleTab)
 {
     for (int i = 0; i < tailleTab; i++)
@@ -698,77 +729,103 @@ void copy_tab(int tab1[], int tab2[], int tailleTab)
     }
 }
 
-// fonction qui vérifie si le nom d'un groupe est deja pris
-int nom_deja_pris(int nom, int groupe[], int tabBool[], int tailleTab)
+// fonction qui affiche la table des transitions d'un automate minimalise
+//  elle prend en parametre, le nombre de caractere ds l'alphabet, la table de transition, la taille de ce tab et l'alphabet
+void affiche_table_transition_mini(int nbAlphabet, int tableTransi[][nbAlphabet], int tailleTab1, char alphabet[])
 {
-    for (int i = 0; i < tailleTab; i++)
+    for (int i = 0; i < nbAlphabet; i++)
+        printf("   %c", alphabet[i]);
+    printf("\n");
+
+    for (int i = 0; i < tailleTab1; i++)
     {
-        if (nom == groupe[i] && tabBool[i] == 0)
+        printf("%d  ", i);
+        for (int j = 0; j < nbAlphabet; j++)
         {
-            /* code */
+            printf("%d   ", tableTransi[i][j]);
         }
+        printf("\n");
     }
+    printf("\n");
 }
 
-void affiche_table_transition_mini()
-{
-}
-
-// fonction qui minimise l'automate
+// fonction qui minimise l'automate, elle prend en parametre l'automate
 void minimise_automate(Automate aut)
 {
-    int groupe[aut.nbEtat];
+    int groupe[aut.nbEtat]; // Le nom des differents groupe creer, gp[0]: 1etat, gp[1]:2etat... = bilan
     initialise_tab_int(groupe, aut.nbEtat, -1);
-    int groupeAvant[aut.nbEtat];
+    int groupeAvant[aut.nbEtat]; // utile pour arreter l'algo si on trouve 2 bilan identique
     initialise_tab_int(groupeAvant, aut.nbEtat, -1);
-    int groupeEtatAccepteur[aut.nbEtat];
+    int groupeEtatAccepteur[aut.nbEtat]; // utile pour sauvegarder l'ancien nom des etats Accepteurs
     copy_tab(aut.etatsAccepteur, groupeEtatAccepteur, aut.nbEtat);
-
-    for (int i = 0; i < aut.nbEtat; i++)
-    {
-    }
 
     char alphabet[100];
     initialise_tab_char(alphabet, 100);
 
+    // definit le nom des groupe : INITIALISATION
     init_minimisation(aut, groupe);
+    /*
+        ex:
+        ->   INIT | 1   1   3
+            --------------------
+    */
+    int nbAlphabet = get_alphabet(aut, alphabet);  // nombre de caractere dans l'alphabet
+    int etapeMinimisation[aut.nbEtat][nbAlphabet]; // les differentes etapes de minimisation => table transition
 
-    int nbAlphabet = get_alphabet(aut, alphabet);
-    int etapeMinimisation[aut.nbEtat][nbAlphabet];
-
-    // execution
+    // EXECUTION
     // remplir tab
     int k = 0;
     int bilanIdentique = 1;
     while (bilanIdentique)
     {
+
+        /*
+        ex:
+                     INIT | 1   1   3
+                 --------------------
+        etape    ->    a  | 1   1   2
+                 ->    b  | 2   3   3
+        */
+        // cette boucle va creer les chiffres a mettre ds les differentes etapes
         for (int i = 0; i < aut.nbEtat; i++)
         {
-            printf("Etat %d\n", i);
+            // printf("Etat %d\n", i);
             for (int j = 0; j < nbAlphabet; j++)
             {
                 for (int j = 0; j < nbAlphabet; j++)
                 {
+                    // on va regarder a quel etat d'arrive(nom groupe) correspond la transition avec etat de depart k de la lettre j
                     if ((aut.listeTransition[k].etatDepart == i) && (aut.listeTransition[k].lettre == alphabet[j]))
                     {
                         etapeMinimisation[i][j] = groupe[aut.listeTransition[k].etatArrivee];
-                        printf("%d  ", etapeMinimisation[i][j]);
+                        // printf("%d  ", etapeMinimisation[i][j]);
                         k++;
                     }
                 }
             }
-            printf("\n");
+            // printf("\n");
         }
         k = 0;
+
         //
         // BILAN
-        copy_tab(groupe, groupeAvant, aut.nbEtat);
+        /*
+        ex:
+            INIT | 1   1   3
+            --------------------
+              a  | 1   1   2
+              b  | 2   3   3
+            --------------------
+        -> BILAN | 1   1   3
+        */
+        copy_tab(groupe, groupeAvant, aut.nbEtat); // on sauvegarde les nom des anciens groupes
 
-        int tabBoolNomDejaDonne[aut.nbEtat];
+        int tabBoolNomDejaDonne[aut.nbEtat]; // tableau de booleen qui indique si on a déjà donné un nom au groupe
         initialise_tab_int(tabBoolNomDejaDonne, aut.nbEtat, 0);
 
-        printf("\n");
+        // printf("\n");
 
+        // On donne des nouveaux noms aux groupes
         for (int i = 0; i < aut.nbEtat; i++) // on s'occupe des colonnes de la meme valeur
         {
             for (int j = 0; j < aut.nbEtat; j++)
@@ -785,16 +842,19 @@ void minimise_automate(Automate aut)
             }
         }
         int pl = max(groupe, aut.nbEtat);
-        for (int i = 0; i < aut.nbEtat; i++) // on s'occupe des colonnes de valeur differente
+        // on s'occupe des colonnes de valeur differente, on leur donne un nouveau nom au fur et a mesure
+        for (int i = 0; i < aut.nbEtat; i++)
         {
             for (int j = 0; j < aut.nbEtat; j++)
             {
                 if (i != j)
                 {
+                    // Si le nom du groupe n'a pas ete pris on le prend
                     if ((tabBoolNomDejaDonne[j] == 0) && (groupe[i] != groupe[j]))
                     {
                         tabBoolNomDejaDonne[j] = 1;
                     }
+                    // sinon on lui donne un nouveau nom qui est le nom le plus grand +1
                     else if ((tabBoolNomDejaDonne[j] == 0) && (groupe[i] == groupe[j]))
                     {
                         groupe[j] = pl;
@@ -804,10 +864,11 @@ void minimise_automate(Automate aut)
                 }
             }
         }
+        // on arrete l'algo si on a 2 bilans identiques
         if (tab_sont_egaux(groupe, groupeAvant, aut.nbEtat))
             bilanIdentique = 0;
 
-        printf("groupe : ");
+        /* printf("groupe : ");
         for (int i = 0; i < aut.nbEtat; i++)
         {
             printf("%d  ", groupe[i]);
@@ -818,22 +879,45 @@ void minimise_automate(Automate aut)
         {
             printf("%d  ", groupeAvant[i]);
         }
-        printf("\n");
+        printf("\n");*/
     }
     //
 
     // on applique les modifications a l'automate
+    int tmp = 0;
+    // mise a jour des etats de depart
+    for (int i = 0; i < aut.nbEtat * aut.nbEtat; i++)
+    {
+        tmp = aut.listeTransition[i].etatDepart;
+        if (tmp != -1)
+            aut.listeTransition[i].etatDepart = groupe[tmp];
+    }
 
+    // mise a jour des etats arrivee
+    tmp = 0;
     for (int i = 0; i < aut.nbEtat; i++)
     {
-        aut.listeTransition[i].etatDepart = i;
-        for (int j = 0; j < aut.nbEtat; j++)
+        for (int j = 0; j < nbAlphabet; j++)
         {
-            aut.listeTransition[i].etatArrivee = etapeMinimisation[i][j];
+            if (aut.listeTransition[tmp].etatArrivee != -1)
+            {
+                aut.listeTransition[tmp].etatArrivee = etapeMinimisation[i][j];
+                tmp++;
+            }
         }
     }
-}
 
+    // mise a jour des etats accepteurs
+    for (int i = 0; i < aut.nbEtat; i++)
+    {
+        if (groupeEtatAccepteur[i] != -1 && aut.etatsAccepteur[i] != -1)
+        {
+            aut.etatsAccepteur[i] = groupe[aut.etatsAccepteur[i]];
+        }
+    }
+
+    affiche_table_transition_mini(nbAlphabet, etapeMinimisation, aut.nbEtat, alphabet);
+}
 //----------------------------------------------------------------------------------
 
 int main(int argc, char *argv[])
