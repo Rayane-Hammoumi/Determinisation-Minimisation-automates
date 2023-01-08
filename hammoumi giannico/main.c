@@ -579,6 +579,8 @@ Automate cree_automate(char nomFichier[])
         printf("\n");
     }
 
+    fclose(fichier);
+
     return aut;
 }
 
@@ -1009,12 +1011,17 @@ void ecrit_automate_dans_fichier(Automate aut, char chemin_fichier[])
         }
         else
         {
-            fprintf(AFD, "%d ", aut.etatsAccepteur[i]);
+            fprintf(AFD, "%d", aut.etatsAccepteur[i]);
+
+            if (i != aut.nbEtat - 1)
+            {
+                if (aut.etatsAccepteur[i + 1] != -1)
+                {
+                    fprintf(AFD, " ");
+                }
+            }
         }
     }
-
-    int position = ftell(AFD);
-    fseek(AFD, position - 1, SEEK_SET);
 
     // on écrit les transitions
     for (i = 0; i < aut.nbEtat * aut.nbEtat; i++)
@@ -1028,6 +1035,8 @@ void ecrit_automate_dans_fichier(Automate aut, char chemin_fichier[])
         }
     }
     printf("ligne %d\n", __LINE__);
+
+    fclose(AFD);
 }
 
 void determinise_automate(Automate aut)
