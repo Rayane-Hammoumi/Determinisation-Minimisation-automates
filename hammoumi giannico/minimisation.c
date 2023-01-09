@@ -1,9 +1,79 @@
 #include "headers.h"
+// fonction qui affiche l'automate
+// elle prend en parametre l'automate
+void affiche_automate(Automate aut)
+{
+    printf("nombre d'etats : %d\n", aut.nbEtats);
+    printf("liste des etats accepteurs :\n");
+    for (int i = 0; i < aut.nbEtats; i++)
+    {
+        if (aut.etatsAccepteurs[i] != -1)
+            printf("%d\n", aut.etatsAccepteurs[i]);
+    }
+    printf("liste des transitions : \n");
+    for (int i = 0; i < aut.nbEtats * aut.nbEtats; i++)
+    {
+        if (aut.listeTransition[i].etatDepart != -1)
+            printf("%d %c %d\n", aut.listeTransition[i].etatDepart, aut.listeTransition[i].lettre, aut.listeTransition[i].etatArrivee);
+    }
+    printf("\n");
+}
 
 // fonction qui affiche la table des transitions d'un automate minimalise
 //  elle prend en paramètre, le nombre de caractere ds l'alphabet, la table de transition, la taille de ce tab et l'alphabet
 Automate minimise_automate(Automate aut)
 {
+
+    int etatTrouve = 0;
+    int etats = aut.nbEtats;
+    int etatAccTrouve = 0;
+    for (int i = 0; i < aut.nbEtats; i++)
+    {
+        etatTrouve = 0;
+        etatAccTrouve = 0;
+
+        for (int j = 0; j < aut.nbEtats * aut.nbEtats; j++)
+        {
+            if (aut.listeTransition[j].etatDepart == i)
+            {
+                etatTrouve = 1;
+            }
+            if (aut.etatsAccepteurs[i] != -1 && (aut.etatsAccepteurs[i] == aut.listeTransition[j].etatDepart || aut.etatsAccepteurs[i] == aut.listeTransition[j].etatArrivee))
+            {
+                etatAccTrouve = 1;
+            }
+            if (etatTrouve && etatAccTrouve)
+            {
+                break;
+            }
+        }
+        if (etatAccTrouve == 0)
+        {
+            aut.etatsAccepteurs[i] = -1;
+        }
+        if (etatTrouve == 0)
+            etats--;
+    }
+    int sauvePos = -1;
+    for (int i = 0; i < aut.nbEtats; i++)
+    {
+        if (aut.etatsAccepteurs[i] == -1)
+        {
+            sauvePos = i;
+        }
+        for (int j = sauvePos + 1; j < aut.nbEtats; j++)
+        {
+            if (sauvePos != -1 && aut.etatsAccepteurs[j] != -1)
+            {
+                aut.etatsAccepteurs[sauvePos] = aut.etatsAccepteurs[j];
+                aut.etatsAccepteurs[j] = -1;
+                sauvePos = -1;
+            }
+        }
+    }
+
+    aut.nbEtats = etats;
+
     int groupe[aut.nbEtats]; // Le nom des différents groupe créés, gp[0]: 1etat, gp[1]:2etat... = bilan
     initialise_tab_int(groupe, aut.nbEtats, -1);
     int groupeAvant[aut.nbEtats]; // utile pour arrêter l'algo si on trouve 2 bilans identiques
@@ -16,13 +86,22 @@ Automate minimise_automate(Automate aut)
 
     // définit le nom des groupe : INITIALISATION
     init_minimisation(aut, groupe);
+
     /*
-        ex:
-        ->   INIT | 1   1   3
-            --------------------
+    ex:
+    ->   INIT | 1   1   3
+        --------------------
     */
     int nbAlphabet = get_alphabet(aut, alphabet);   // nombre de caractères dans l'alphabet
     int etapeMinimisation[aut.nbEtats][nbAlphabet]; // les différentes étapes de minimisation => table transition
+
+    for (int i = 0; i < aut.nbEtats; i++)
+    {
+        for (int j = 0; j < nbAlphabet; j++)
+        {
+            etapeMinimisation[i][j] = -1;
+        }
+    }
 
     // EXECUTION
     // remplir tab
@@ -117,61 +196,81 @@ Automate minimise_automate(Automate aut)
         if (tab_sont_egaux(groupe, groupeAvant, aut.nbEtats))
             bilanIdentique = 0;
     }
-
-    supprime_doublons(groupe, aut.nbEtats);
-
-    // mise à jour des états accepteurs
+    // on vérifie que tout les etats sont accepteur, car si c'est vrai on a pas besoin d'effectuer de changement
+    int comptAccept = 0;
     for (int i = 0; i < aut.nbEtats; i++)
     {
-        if (groupeEtatAccepteur[i] != -1 && aut.etatsAccepteurs[i] != -1)
-        {
-            aut.etatsAccepteurs[i] = groupe[aut.etatsAccepteurs[i]];
-        }
+        if (groupe[i] == 0)
+            comptAccept++;
     }
-
-    // on met à jour les transitions de l'automate
     Transition transiTmp;
-    int cpt = 0;
-    int grpSupp = 0;
-    int comptEtat = 0;
-    for (int i = 0; i < aut.nbEtats; i++)
+    transiTmp.etatDepart = -1;
+    transiTmp.lettre = '\0';
+    transiTmp.etatArrivee = -1;
+
+    if (comptAccept != aut.nbEtats)
     {
-        grpSupp = groupe[i];
+        supprime_doublons(groupe, aut.nbEtats);
 
-        for (int j = 0; j < nbAlphabet; j++)
+        // mise à jour des états accepteurs
+        for (int i = 0; i < aut.nbEtats; i++)
         {
-            if (groupe[i] != -1)
+            if (groupeEtatAccepteur[i] != -1 && aut.etatsAccepteurs[i] != -1)
             {
-                transiTmp.etatDepart = groupe[i];
-                transiTmp.lettre = alphabet[j];
-                transiTmp.etatArrivee = etapeMinimisation[i][j];
-                aut.listeTransition[cpt] = transiTmp;
-                cpt++;
-                if (j == 0)
-                {
-                    comptEtat++;
-                }
-                if (j == nbAlphabet - 1)
-                {
+                aut.etatsAccepteurs[i] = groupe[aut.etatsAccepteurs[i]];
+            }
+        }
 
-                    if (grpSupp == groupe[k])
-                        groupe[k] = -1;
+        // on met à jour les transitions de l'automate
+        Transition transiTmp;
+        int cpt = 0;
+        int comptEtat = 0;
+
+        for (int i = 0; i < aut.nbEtats; i++)
+        {
+            printf("groupe= %d\n", groupe[i]);
+        }
+
+        for (int i = 0; i < aut.nbEtats; i++)
+        {
+            for (int j = 0; j < nbAlphabet; j++)
+            {
+
+                if (groupe[i] != -1)
+                {
+                    transiTmp.etatDepart = groupe[i];
+                    transiTmp.lettre = alphabet[j];
+                    transiTmp.etatArrivee = etapeMinimisation[i][j];
+                    aut.listeTransition[cpt] = transiTmp;
+
+                    cpt++;
+                    if (j == 0)
+                    {
+                        comptEtat++;
+                    }
+                    if (j == nbAlphabet - 1)
+                    {
+                        groupe[i] = -1;
+                    }
                 }
             }
         }
+        aut.nbEtats = comptEtat; // on met a jour le nombre d'état
+        // on enlève le reste des transitions
+        for (int i = cpt; i < aut.nbEtats * aut.nbEtats; i++)
+        {
+            transiTmp.etatDepart = -1;
+            transiTmp.lettre = '\0';
+            transiTmp.etatArrivee = -1;
+            aut.listeTransition[i] = transiTmp;
+        }
     }
-    aut.nbEtats = comptEtat; // on met a jour le nombre d'état
-
-    // on enlève le reste des transitions
-    for (int i = cpt; i < aut.nbEtats * aut.nbEtats; i++)
+    for (int i = 0; i < aut.nbEtats * aut.nbEtats; i++)
     {
-        transiTmp.etatDepart = -1;
-        transiTmp.lettre = '\0';
-        transiTmp.etatArrivee = -1;
-        aut.listeTransition[i] = transiTmp;
+        printf("%d %c %d\n", aut.listeTransition[i].etatDepart, aut.listeTransition[i].lettre, aut.listeTransition[i].etatArrivee);
     }
 
-    // on va supprimer les états morts s'il y en a
+    // on va supprimer les transitions qui ne mènent jamais à des états accepteurs s'il y en a
     int cptSuppr = 0;
     int nbEtats = aut.nbEtats;
     int j = 0;
@@ -188,16 +287,36 @@ Automate minimise_automate(Automate aut)
                 {
                     etatArrivee = aut.listeTransition[j].etatArrivee;
                 }
-                j++;
+
                 if (etatArrivee == -1 || aut.listeTransition[j].lettre == '\0')
                 {
                     aut.listeTransition[i] = transiTmp;
                     break;
                 }
+                j++;
             }
         }
     }
+    // on va supprimer les états qui ne mènent jamais à des états accepteurs s'il y en a
+    etatTrouve = 0;
+    etats = aut.nbEtats;
+    for (int i = 0; i < aut.nbEtats; i++)
+    {
+        etatTrouve = 0;
 
+        for (int j = 0; j < aut.nbEtats * aut.nbEtats; j++)
+        {
+            if (aut.listeTransition[j].etatDepart == i)
+            {
+                etatTrouve = 1;
+                break;
+            }
+        }
+        if (etatTrouve == 0)
+            etats--;
+    }
+    aut.nbEtats = etats;
+    affiche_automate(aut);
     ecrit_automate_dans_fichier(aut, "./AFD_minimal");
     affiche_table_transitions(aut, alphabet, nbAlphabet);
     return aut;
