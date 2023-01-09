@@ -240,7 +240,6 @@ void copie_elements(char a[], char b[], int indice_max)
         a[i] = b[i];
     }
 }
-
 //----------------------------------------------------------------------------------
 
 void ecrit_automate_dans_fichier(Automate aut, char chemin_fichier[])
@@ -259,23 +258,13 @@ void ecrit_automate_dans_fichier(Automate aut, char chemin_fichier[])
     // on écrit les états accepteurs dans le fichier AFD
     for (i = 0; i < aut.nbEtats; i++)
     {
-        if (aut.etatsAccepteur[i] == -1)
+        if (aut.etatsAccepteur[i] != -1)
         {
-            break;
-        }
-        else
-        {
-            fprintf(AFD, "%d", aut.etatsAccepteur[i]);
-
-            if (i != aut.nbEtats - 1)
-            {
-                if (aut.etatsAccepteur[i + 1] != -1)
-                {
-                    fprintf(AFD, " ");
-                }
-            }
+            fprintf(AFD, "%d ", aut.etatsAccepteur[i]);
         }
     }
+
+    fseek(AFD, -1, SEEK_CUR);
 
     // on écrit les transitions
     for (i = 0; i < aut.nbEtats * aut.nbEtats; i++)
@@ -303,11 +292,7 @@ void affiche_table_transitions(Automate aut, char caracteres_automate[], int nb_
     // on affiche les états accepteurs
     for (i = 0; i < aut.nbEtats; i++)
     {
-        if (aut.etatsAccepteur[i] == -1)
-        {
-            break;
-        }
-        else
+        if (aut.etatsAccepteur[i] != -1)
         {
             printf("%d ", aut.etatsAccepteur[i]);
         }
