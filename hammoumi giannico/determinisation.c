@@ -91,21 +91,21 @@ void determinise_automate(Automate aut)
                     {
                         printf("minnimmum : %d", minimum);
 
-                        if (!est_ds_tableau_int(minimum, aut.etatsAccepteur, aut.nbEtats))
+                        if (!est_ds_tableau_int(minimum, aut.etatsAccepteurs, aut.nbEtats))
                         {
-                            if (aut.etatsAccepteur[h] == -1)
+                            if (aut.etatsAccepteurs[h] == -1)
                             {
-                                aut.etatsAccepteur[h] = minimum;
+                                aut.etatsAccepteurs[h] = minimum;
                                 break;
                             }
                         }
 
                         // si un état accepteur a été fusionné et n'est pas le minimum, alors on le met à -1
-                        if (aut.etatsAccepteur[h] != -1)
+                        if (aut.etatsAccepteurs[h] != -1)
                         {
-                            if ((aut.etatsAccepteur[h] != minimum) && (est_ds_tableau_int(aut.etatsAccepteur[h], etats_a_fusionner, aut.nbEtats)))
+                            if ((aut.etatsAccepteurs[h] != minimum) && (est_ds_tableau_int(aut.etatsAccepteurs[h], etats_a_fusionner, aut.nbEtats)))
                             {
-                                aut.etatsAccepteur[h] = -1;
+                                aut.etatsAccepteurs[h] = -1;
                             }
                         }
                     }

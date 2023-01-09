@@ -25,7 +25,7 @@ Automate cree_automate(char nomFichier[])
             if (i == 0) // 1ère ligne du fichier correspond au nombre d'etat
             {
                 aut.nbEtats = atoi(txt);
-                aut.etatsAccepteur = malloc(aut.nbEtats * sizeof(int));
+                aut.etatsAccepteurs = malloc(aut.nbEtats * sizeof(int));
 
                 aut.listeTransition = malloc((aut.nbEtats * aut.nbEtats) * sizeof(Transition));
 
@@ -39,15 +39,15 @@ Automate cree_automate(char nomFichier[])
             if (i == 1) // 2ème ligne du fichier correspond aux etats accepteur
             {
                 char *token = strtok(txt, " ");
-                // on va extraire les differents jetons et les mettre dans le tableau des etatsAccepteur
+                // on va extraire les differents jetons et les mettre dans le tableau des etatsAccepteurs
                 while (token != NULL)
                 {
-                    aut.etatsAccepteur[k] = atoi(token);
+                    aut.etatsAccepteurs[k] = atoi(token);
                     token = strtok(NULL, " ");
                     k++;
                 }
                 for (int i = k; i < aut.nbEtats; i++) // met le reste du tab a -1
-                    aut.etatsAccepteur[i] = -1;
+                    aut.etatsAccepteurs[i] = -1;
             }
             if (i >= 2) // a partir de la 3eme ligne il y a que les transitions
             {
@@ -87,7 +87,7 @@ int est_accepteur(int etat, Automate aut)
 {
     for (int i = 0; i < aut.nbEtats; i++)
     {
-        if (etat == aut.etatsAccepteur[i])
+        if (etat == aut.etatsAccepteurs[i])
             return 1;
     }
     return 0;
@@ -258,9 +258,9 @@ void ecrit_automate_dans_fichier(Automate aut, char chemin_fichier[])
     // on écrit les états accepteurs dans le fichier AFD
     for (i = 0; i < aut.nbEtats; i++)
     {
-        if (aut.etatsAccepteur[i] != -1)
+        if (aut.etatsAccepteurs[i] != -1)
         {
-            fprintf(AFD, "%d ", aut.etatsAccepteur[i]);
+            fprintf(AFD, "%d ", aut.etatsAccepteurs[i]);
         }
     }
 
@@ -292,9 +292,9 @@ void affiche_table_transitions(Automate aut, char caracteres_automate[], int nb_
     // on affiche les états accepteurs
     for (i = 0; i < aut.nbEtats; i++)
     {
-        if (aut.etatsAccepteur[i] != -1)
+        if (aut.etatsAccepteurs[i] != -1)
         {
-            printf("%d ", aut.etatsAccepteur[i]);
+            printf("%d ", aut.etatsAccepteurs[i]);
         }
     }
 

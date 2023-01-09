@@ -9,7 +9,7 @@ Automate minimise_automate(Automate aut)
     int groupeAvant[aut.nbEtats]; // utile pour arrêter l'algo si on trouve 2 bilans identiques
     initialise_tab_int(groupeAvant, aut.nbEtats, -1);
     int groupeEtatAccepteur[aut.nbEtats]; // utile pour sauvegarder l'ancien nom des états accepteurs
-    copy_tab(aut.etatsAccepteur, groupeEtatAccepteur, aut.nbEtats);
+    copy_tab(aut.etatsAccepteurs, groupeEtatAccepteur, aut.nbEtats);
 
     char alphabet[100];
     initialise_tab_char(alphabet, 100);
@@ -21,7 +21,7 @@ Automate minimise_automate(Automate aut)
         ->   INIT | 1   1   3
             --------------------
     */
-    int nbAlphabet = get_alphabet(aut, alphabet);  // nombre de caractères dans l'alphabet
+    int nbAlphabet = get_alphabet(aut, alphabet);   // nombre de caractères dans l'alphabet
     int etapeMinimisation[aut.nbEtats][nbAlphabet]; // les différentes étapes de minimisation => table transition
 
     // EXECUTION
@@ -123,9 +123,9 @@ Automate minimise_automate(Automate aut)
     // mise à jour des états accepteurs
     for (int i = 0; i < aut.nbEtats; i++)
     {
-        if (groupeEtatAccepteur[i] != -1 && aut.etatsAccepteur[i] != -1)
+        if (groupeEtatAccepteur[i] != -1 && aut.etatsAccepteurs[i] != -1)
         {
-            aut.etatsAccepteur[i] = groupe[aut.etatsAccepteur[i]];
+            aut.etatsAccepteurs[i] = groupe[aut.etatsAccepteurs[i]];
         }
     }
 
@@ -182,7 +182,7 @@ Automate minimise_automate(Automate aut)
         {
             j = 0;
             etatArrivee = aut.listeTransition[i].etatArrivee;
-            while (!est_ds_tableau_int(etatArrivee, aut.etatsAccepteur, aut.nbEtats))
+            while (!est_ds_tableau_int(etatArrivee, aut.etatsAccepteurs, aut.nbEtats))
             {
                 if (i != j && etatArrivee == aut.listeTransition[j].etatDepart)
                 {
