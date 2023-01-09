@@ -35,6 +35,7 @@ int tab_sont_egaux(int tab1[], int tab2[], int tailleTab);
 int max(int tab[], int tailleTab);
 void supprime_doublons(int tab[], int tailleTab);
 int est_ds_tableau_int(int e, int tab[], int tailleTab);
+int est_accepteur(int etat, Automate aut);
 
 #define limite_nb_chiffre_max_par_etat 6
 // valeur à augmenter si on travaille sur des automates à plus de 100 000 états

@@ -7,8 +7,9 @@ void determinise_automate(Automate aut)
 
     char caracteres_automate[100];
     int compteur_transitions_non_deterministes = 0;
-    int minimum = 0; // quand on fusionne des états, on les remplace tous par le plus petit numéro parmi ces états
-    int num_etat, num_caractere, indice_transition, i, j, z, h;
+    int minimum = 0;               // quand on fusionne des états, on les remplace tous par le plus petit numéro parmi ces états
+    int minimum_est_accepteur = 0; // booléen
+    int num_etat, num_caractere, indice_transition, i, j, z, h, x;
 
     initialise_tab_int(etats_a_fusionner, aut.nbEtats, -1);
 
@@ -74,30 +75,39 @@ void determinise_automate(Automate aut)
                     aut.listeTransition[indices_transitions_a_supprimer[i]].etatDepart = -1;
                     aut.listeTransition[indices_transitions_a_supprimer[i]].etatArrivee = -1;
                 }
-            }
-            else
-            {
-                initialise_tab_int(etats_a_fusionner, aut.nbEtats, -1);
-            }
 
-            for (h = 0; h < aut.nbEtats; h++)
-            {
-                // si il n'y a pas déjà le minimum dans les états accepteurs, on l'ajoute
-                if (!est_ds_tableau_int(minimum, aut.etatsAccepteur, aut.nbEtats))
+                for (x = 0; x < compteur_transitions_non_deterministes; x++)
                 {
-                    if (aut.etatsAccepteur[h] == -1)
+                    if ((etats_a_fusionner[x] != -1) && (est_accepteur(etats_a_fusionner[x], aut)))
                     {
-                        aut.etatsAccepteur[h] = minimum;
-                        break;
+                        minimum_est_accepteur = 1;
                     }
                 }
 
-                // si un état accepteur a été fusionné et n'est pas le minimum, alors on le met à -1
-                if (aut.etatsAccepteur[h] != -1)
+                if (minimum_est_accepteur)
                 {
-                    if ((aut.etatsAccepteur[h] != minimum) && (est_ds_tableau_int(aut.etatsAccepteur[h], etats_a_fusionner, aut.nbEtats)))
+                    // si il y a un accepteur dans etats_a_fusionner et si il n'y a pas déjà minimum dans les états accepteurs, on l'ajoute
+                    for (h = 0; h < aut.nbEtats; h++)
                     {
-                        aut.etatsAccepteur[h] = -1;
+                        printf("minnimmum : %d", minimum);
+
+                        if (!est_ds_tableau_int(minimum, aut.etatsAccepteur, aut.nbEtats))
+                        {
+                            if (aut.etatsAccepteur[h] == -1)
+                            {
+                                aut.etatsAccepteur[h] = minimum;
+                                break;
+                            }
+                        }
+
+                        // si un état accepteur a été fusionné et n'est pas le minimum, alors on le met à -1
+                        if (aut.etatsAccepteur[h] != -1)
+                        {
+                            if ((aut.etatsAccepteur[h] != minimum) && (est_ds_tableau_int(aut.etatsAccepteur[h], etats_a_fusionner, aut.nbEtats)))
+                            {
+                                aut.etatsAccepteur[h] = -1;
+                            }
+                        }
                     }
                 }
             }
