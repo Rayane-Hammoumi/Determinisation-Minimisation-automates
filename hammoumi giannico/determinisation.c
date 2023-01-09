@@ -2,15 +2,15 @@
 
 void determinise_automate(Automate aut)
 {
-    int indices_transitions_a_supprimer[aut.nbEtat * aut.nbEtat];
-    int etats_a_fusionner[aut.nbEtat];
+    int indices_transitions_a_supprimer[aut.nbEtats * aut.nbEtats];
+    int etats_a_fusionner[aut.nbEtats];
 
     char caracteres_automate[100];
     int compteur_transitions_non_deterministes = 0;
     int minimum = 0;
     int num_etat, num_caractere, indice_transition, i, j, z;
 
-    for (z = 0; z < aut.nbEtat; z++)
+    for (z = 0; z < aut.nbEtats; z++)
     {
         etats_a_fusionner[z] = 0;
     }
@@ -19,11 +19,11 @@ void determinise_automate(Automate aut)
     int nb_caracteres_automate = get_alphabet(aut, caracteres_automate);
 
     // déterminisation
-    for (num_etat = 0; num_etat < aut.nbEtat; num_etat++)
+    for (num_etat = 0; num_etat < aut.nbEtats; num_etat++)
     {
         for (num_caractere = 0; num_caractere < nb_caracteres_automate; num_caractere++)
         {
-            for (indice_transition = 0; indice_transition < aut.nbEtat * aut.nbEtat; indice_transition++)
+            for (indice_transition = 0; indice_transition < aut.nbEtats * aut.nbEtats; indice_transition++)
             {
                 // sinon si on trouve une transition avec le meme état de départ et le meme caractère que recherché
                 if ((aut.listeTransition[indice_transition].etatDepart == num_etat) && (aut.listeTransition[indice_transition].lettre == caracteres_automate[num_caractere]))
@@ -52,7 +52,7 @@ void determinise_automate(Automate aut)
                 aut.listeTransition[indices_transitions_a_supprimer[0]].etatArrivee = minimum;
 
                 // on parcourt les transitions pour remplacer les états fusionnés par le minimum
-                for (i = 0; i < aut.nbEtat * aut.nbEtat; i++)
+                for (i = 0; i < aut.nbEtats * aut.nbEtats; i++)
                 {
                     for (j = 0; j < compteur_transitions_non_deterministes; j++)
                     {
@@ -75,7 +75,7 @@ void determinise_automate(Automate aut)
 
             // on réinitialise les variables nécessaires pour le prochain caractère
             compteur_transitions_non_deterministes = 0;
-            for (z = 0; z < aut.nbEtat; z++)
+            for (z = 0; z < aut.nbEtats; z++)
             {
                 etats_a_fusionner[z] = 0;
             }

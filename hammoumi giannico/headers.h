@@ -12,7 +12,7 @@ typedef struct Transition
 
 typedef struct Automate
 {
-    int nbEtat;
+    int nbEtats;
     int *etatsAccepteur;
     Transition *listeTransition;
 } Automate;

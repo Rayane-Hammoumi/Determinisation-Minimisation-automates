@@ -24,12 +24,12 @@ Automate cree_automate(char nomFichier[])
         {
             if (i == 0) // 1ère ligne du fichier correspond au nombre d'etat
             {
-                aut.nbEtat = atoi(txt);
-                aut.etatsAccepteur = malloc(aut.nbEtat * sizeof(int));
+                aut.nbEtats = atoi(txt);
+                aut.etatsAccepteur = malloc(aut.nbEtats * sizeof(int));
 
-                aut.listeTransition = malloc((aut.nbEtat * aut.nbEtat) * sizeof(Transition));
+                aut.listeTransition = malloc((aut.nbEtats * aut.nbEtats) * sizeof(Transition));
 
-                for (int i = 0; i <= aut.nbEtat * aut.nbEtat; i++) // met le du tab a -1
+                for (int i = 0; i <= aut.nbEtats * aut.nbEtats; i++) // met le du tab a -1
                 {
                     aut.listeTransition[i].etatDepart = -1;
                     aut.listeTransition[i].lettre = '\0';
@@ -46,7 +46,7 @@ Automate cree_automate(char nomFichier[])
                     token = strtok(NULL, " ");
                     k++;
                 }
-                for (int i = k; i < aut.nbEtat; i++) // met le reste du tab a -1
+                for (int i = k; i < aut.nbEtats; i++) // met le reste du tab a -1
                     aut.etatsAccepteur[i] = -1;
             }
             if (i >= 2) // a partir de la 3eme ligne il y a que les transitions
@@ -85,7 +85,7 @@ Automate cree_automate(char nomFichier[])
 // elle prend en paramètre, l'état, et l'automate
 int est_accepteur(int etat, Automate aut)
 {
-    for (int i = 0; i < aut.nbEtat; i++)
+    for (int i = 0; i < aut.nbEtats; i++)
     {
         if (etat == aut.etatsAccepteur[i])
             return 1;
@@ -135,7 +135,7 @@ void init_minimisation(Automate aut, int groupe[])
 {
     // init // 0: etat 0, 1: etat 1...
     int nomGroupe = 0; // 0 = accepteur 1 sinon
-    for (int i = 0; i < aut.nbEtat; i++)
+    for (int i = 0; i < aut.nbEtats; i++)
     {
         if (est_accepteur(i, aut))
             groupe[i] = 0;
@@ -254,10 +254,10 @@ void ecrit_automate_dans_fichier(Automate aut, char chemin_fichier[])
         exit(1);
     }
 
-    fprintf(AFD, "%d\n", aut.nbEtat); // on écrit le nombre d'états dans le fichier AFD
+    fprintf(AFD, "%d\n", aut.nbEtats); // on écrit le nombre d'états dans le fichier AFD
     int i;
     // on écrit les états accepteurs dans le fichier AFD
-    for (i = 0; i < aut.nbEtat; i++)
+    for (i = 0; i < aut.nbEtats; i++)
     {
         if (aut.etatsAccepteur[i] == -1)
         {
@@ -267,7 +267,7 @@ void ecrit_automate_dans_fichier(Automate aut, char chemin_fichier[])
         {
             fprintf(AFD, "%d", aut.etatsAccepteur[i]);
 
-            if (i != aut.nbEtat - 1)
+            if (i != aut.nbEtats - 1)
             {
                 if (aut.etatsAccepteur[i + 1] != -1)
                 {
@@ -278,7 +278,7 @@ void ecrit_automate_dans_fichier(Automate aut, char chemin_fichier[])
     }
 
     // on écrit les transitions
-    for (i = 0; i < aut.nbEtat * aut.nbEtat; i++)
+    for (i = 0; i < aut.nbEtats * aut.nbEtats; i++)
     {
         if (aut.listeTransition[i].lettre != '\0')
         {
@@ -295,13 +295,13 @@ void ecrit_automate_dans_fichier(Automate aut, char chemin_fichier[])
 void affiche_table_transitions(Automate aut, char caracteres_automate[], int nb_caracteres_automate)
 {
     // on affiche le nombre d'états
-    printf("%d\n", aut.nbEtat);
+    printf("%d\n", aut.nbEtats);
 
     int i;
     int au_moins_une_transition_vers_ce_car = 0;
 
     // on affiche les états accepteurs
-    for (i = 0; i < aut.nbEtat; i++)
+    for (i = 0; i < aut.nbEtats; i++)
     {
         if (aut.etatsAccepteur[i] == -1)
         {
@@ -321,7 +321,7 @@ void affiche_table_transitions(Automate aut, char caracteres_automate[], int nb_
     }
 
     // pour chaque état de l'automate
-    for (i = 0; i < aut.nbEtat; i++)
+    for (i = 0; i < aut.nbEtats; i++)
     {
         printf("\n%d", i);
         // pour chaque caractère de l'automate
@@ -343,7 +343,7 @@ void affiche_table_transitions(Automate aut, char caracteres_automate[], int nb_
             }
 
             // pour chaque transition
-            for (int k = 0; k < aut.nbEtat * aut.nbEtat; k++)
+            for (int k = 0; k < aut.nbEtats * aut.nbEtats; k++)
             {
                 // si la transition existe vraiment
                 if (aut.listeTransition[k].lettre != '\0')
