@@ -89,8 +89,6 @@ void determinise_automate(Automate aut)
                     // si il y a un accepteur dans etats_a_fusionner et si il n'y a pas déjà minimum dans les états accepteurs, on l'ajoute
                     for (h = 0; h < aut.nbEtats; h++)
                     {
-                        printf("minnimmum : %d", minimum);
-
                         if (!est_ds_tableau_int(minimum, aut.etatsAccepteurs, aut.nbEtats))
                         {
                             if (aut.etatsAccepteurs[h] == -1)
