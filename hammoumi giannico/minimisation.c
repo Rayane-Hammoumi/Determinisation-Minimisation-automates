@@ -1,23 +1,4 @@
 #include "headers.h"
-// fonction qui affiche l'automate
-// elle prend en parametre l'automate
-void affiche_automate(Automate aut)
-{
-    printf("nombre d'etats : %d\n", aut.nbEtats);
-    printf("liste des etats accepteurs :\n");
-    for (int i = 0; i < aut.nbEtats; i++)
-    {
-        if (aut.etatsAccepteurs[i] != -1)
-            printf("%d\n", aut.etatsAccepteurs[i]);
-    }
-    printf("liste des transitions : \n");
-    for (int i = 0; i < aut.nbEtats * aut.nbEtats; i++)
-    {
-        if (aut.listeTransition[i].etatDepart != -1)
-            printf("%d %c %d\n", aut.listeTransition[i].etatDepart, aut.listeTransition[i].lettre, aut.listeTransition[i].etatArrivee);
-    }
-    printf("\n");
-}
 
 // fonction qui affiche la table des transitions d'un automate minimalise
 //  elle prend en paramètre, le nombre de caractere ds l'alphabet, la table de transition, la taille de ce tab et l'alphabet
@@ -228,11 +209,6 @@ Automate minimise_automate(Automate aut)
 
         for (int i = 0; i < aut.nbEtats; i++)
         {
-            printf("groupe= %d\n", groupe[i]);
-        }
-
-        for (int i = 0; i < aut.nbEtats; i++)
-        {
             for (int j = 0; j < nbAlphabet; j++)
             {
 
@@ -264,10 +240,6 @@ Automate minimise_automate(Automate aut)
             transiTmp.etatArrivee = -1;
             aut.listeTransition[i] = transiTmp;
         }
-    }
-    for (int i = 0; i < aut.nbEtats * aut.nbEtats; i++)
-    {
-        printf("%d %c %d\n", aut.listeTransition[i].etatDepart, aut.listeTransition[i].lettre, aut.listeTransition[i].etatArrivee);
     }
 
     // on va supprimer les transitions qui ne mènent jamais à des états accepteurs s'il y en a
@@ -316,7 +288,7 @@ Automate minimise_automate(Automate aut)
             etats--;
     }
     aut.nbEtats = etats;
-    affiche_automate(aut);
+
     ecrit_automate_dans_fichier(aut, "./AFD_minimal");
     affiche_table_transitions(aut, alphabet, nbAlphabet);
     return aut;
